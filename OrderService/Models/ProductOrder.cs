@@ -6,6 +6,5 @@ namespace OrderService.Models
     public int ProductID { get; set; }
     public int Amount { get; set; }
     public Order Order { get; set; }
-    public Product Product { get; set; }
     }
 }
