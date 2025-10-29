@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using OrderService.Data;
 using OrderService.Interfaces;
 using OrderService.Models;
@@ -25,29 +26,24 @@ namespace OrderService.Repository
             throw new NotImplementedException();
         }
 
-        public ICollection<Order> GetCurrentOrders()
-        {
-            throw new NotImplementedException();
-        }
-
         public Order GetOrder(int orderID)
         {
-            throw new NotImplementedException();
+            return _context.Orders.Where(o => o.OrderID == orderID).Include(o => o.ProductOrders).FirstOrDefault()!;
         }
 
         public ICollection<Order> GetOrders()
         {
-            throw new NotImplementedException();
+            return [.. _context.Orders.Include(o => o.ProductOrders)];
         }
 
         public ICollection<Order> GetOrders(int userId)
         {
-            throw new NotImplementedException();
+            return [.. _context.Orders.Where(o => o.UserId == userId).Include(o => o.ProductOrders)];
         }
 
         public ICollection<Order> GetOrdersBetween(DateTime startDate, DateTime endDate)
         {
-            throw new NotImplementedException();
+            return [.. _context.Orders.Where(o => startDate <= o.Date && o.Date <= endDate).Include(o => o.ProductOrders)];
         }
 
         public bool OrderExists(int orderID)

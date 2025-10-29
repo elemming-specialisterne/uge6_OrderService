@@ -5,7 +5,6 @@ namespace OrderService.Interfaces
     {
         ICollection<Order> GetOrders();
         ICollection<Order> GetOrders(int userId);
-        ICollection<Order> GetCurrentOrders();
         ICollection<Order> GetOrdersBetween(DateTime startDate, DateTime endDate);
         Order GetOrder(int orderID);
         bool OrderExists(int orderID);

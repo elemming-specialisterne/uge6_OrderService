@@ -14,6 +14,54 @@ namespace OrderService.Controllers
         private readonly IProductOrderRepository _productOrderRepository = productOrderRepository;
         private readonly IMapper _mapper = mapper;
 
+        [HttpGet]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<Order>))]
+        public IActionResult GetOrders()
+        {
+            var orders = _mapper.Map<List<OrderDto>>(_orderRepository.GetOrders());
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(orders);
+        }
+
+        [HttpGet("user/{userID}")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<Order>))]
+        public IActionResult GetOrders(int userID)
+        {
+            var orders = _mapper.Map<List<OrderDto>>(_orderRepository.GetOrders(userID));
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(orders);
+        }
+
+        [HttpGet("{orderID}")]
+        [ProducesResponseType(200, Type = typeof(OrderDto))]
+        public IActionResult GetOrder(int orderID)
+        {
+            var order = _mapper.Map<OrderDto>(_orderRepository.GetOrder(orderID));
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(order);
+        }
+
+        [HttpGet("between")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<OrderDto>))]
+        public IActionResult GetOrdersBetween([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            var orders =  _mapper.Map<List<OrderDto>>(_orderRepository.GetOrdersBetween(startDate, endDate));
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(orders);
+        }
+
         [HttpPost("[action]")]
         [ProducesResponseType(204)]
         [ProducesResponseType(422)]

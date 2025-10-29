@@ -1,4 +1,5 @@
 using System.Runtime;
+using FakeItEasy;
 using Microsoft.EntityFrameworkCore;
 using OrderService.Data;
 using OrderService.Interfaces;
@@ -28,7 +29,7 @@ public sealed class OrderRepositoryTests
                 databaseContext.Orders.Add(new Order()
                 {
                     OrderID = i,
-                    UserId = 123,
+                    UserId = (i % 3)+1,
                     Date = DateTime.Today.AddDays(i-5),
                     Price = 147.15,
                     ProductOrders =
@@ -105,30 +106,50 @@ public sealed class OrderRepositoryTests
 
         Assert.IsNotNull(orders);
         Assert.AreEqual(10, orders.Count);
-        Assert.IsTrue(orders.All(o => o.UserId == 123));
-    }
-
-    [TestMethod]
-    public async Task Test_GetCurrentOrders()
-    {
-        //public ICollection<Order> GetCurrentOrders()
     }
 
     [TestMethod]
     public async Task Test_GetOrder_ByOrderID()
     {
-        //public Order GetOrder(int orderID)
+        var dbContext = await GetDatabaseContext();
+        IOrderRepository orderRepository = new OrderRepository(dbContext);
+
+        var order = orderRepository.GetOrder(3);
+
+        Assert.IsNotNull(order);
+        Assert.AreEqual(3, order.OrderID);
+        Assert.AreEqual(1, order.UserId);
+        Assert.AreEqual(DateTime.Today.AddDays(-2), order.Date);
+        Assert.AreEqual(1, order.ProductOrders.Count);
+        Assert.AreEqual(3, order.ProductOrders.First().ProductID);
+        Assert.AreEqual(3, order.ProductOrders.First().Amount);
     }
 
     [TestMethod]
     public async Task Test_GetOrders_ByUserID()
     {
-        // public ICollection<Order> GetOrders(int userId)
+        var dbContext = await GetDatabaseContext();
+        IOrderRepository orderRepository = new OrderRepository(dbContext);
+
+        var orders = orderRepository.GetOrders(2);
+
+        Assert.IsNotNull(orders);
+        Assert.AreEqual(4, orders.Count);
+        foreach (var order in orders)
+        {
+            Assert.AreEqual(2, order.UserId);
+        }
     }
 
     [TestMethod]
     public async Task Test_GetOrdersBetween()
     {
-        // public ICollection<Order> GetOrdersBetween(DateTime startDate, DateTime endDate)
+        var dbContext = await GetDatabaseContext();
+        IOrderRepository orderRepository = new OrderRepository(dbContext);
+
+        var orders = orderRepository.GetOrdersBetween(DateTime.Today.AddDays(-2), DateTime.Today.AddDays(1));
+
+        Assert.IsNotNull(orders);
+        Assert.AreEqual(4, orders.Count);
     }
 }
