@@ -6,5 +6,7 @@ namespace OrderService.Dto
     public int UserId { get; set; }
     public double Price { get; set; }
     public DateTime Date { get; set; }
+
+    public ICollection<ProductOrderDto> Products { get; set; }
     }
 }
