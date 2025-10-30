@@ -1,6 +1,6 @@
 namespace OrderService.Dto
 {
-    public class ProductOrderDto
+    public class OrderItemDto
     {
     public int OrderID { get; set; }
     public int ProductID { get; set; }

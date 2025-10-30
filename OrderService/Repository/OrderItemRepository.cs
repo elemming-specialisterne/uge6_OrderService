@@ -4,36 +4,36 @@ using OrderService.Models;
 
 namespace OrderService.Repository
 {
-    public class ProductOrderRepository(OrderContext context) : IProductOrderRepository
+    public class OrderItemRepository(OrderContext context) : IOrderItemRepository
     {
         private readonly OrderContext _context = context;
 
-        public bool CreateProductOrder(ProductOrder productOrder)
+        public bool CreateProductOrder(OrderItem productOrder)
         {
             throw new NotImplementedException();
         }
 
-        public bool DeleteProductOrder(ProductOrder productOrder)
+        public bool DeleteProductOrder(OrderItem productOrder)
         {
             throw new NotImplementedException();
         }
 
-        public ICollection<ProductOrder> GetProductFromProducts(int productID)
+        public ICollection<OrderItem> GetProductFromProducts(int productID)
         {
             throw new NotImplementedException();
         }
 
-        public ProductOrder GetProductOrder(int orderID, int ProductID)
+        public OrderItem GetProductOrder(int orderID, int ProductID)
         {
             throw new NotImplementedException();
         }
 
-        public ICollection<ProductOrder> GetProductOrders()
+        public ICollection<OrderItem> GetProductOrders()
         {
             throw new NotImplementedException();
         }
 
-        public ICollection<ProductOrder> GetProductOrders(int orderID)
+        public ICollection<OrderItem> GetProductOrders(int orderID)
         {
             throw new NotImplementedException();
         }
@@ -43,7 +43,7 @@ namespace OrderService.Repository
             throw new NotImplementedException();
         }
 
-        public bool UpdateProductOrder(ProductOrder productOrder)
+        public bool UpdateProductOrder(OrderItem productOrder)
         {
             throw new NotImplementedException();
         }

@@ -28,13 +28,13 @@ public sealed class OrderRepositoryTests
             {
                 databaseContext.Orders.Add(new Order()
                 {
-                    OrderID = i,
+                    Orderid = i,
                     UserId = (i % 3)+1,
                     Date = DateTime.Today.AddDays(i-5),
                     Price = 147.15,
-                    ProductOrders =
+                    OrderItems =
                     [
-                        new ProductOrder() {OrderID = i, ProductID = i, Amount = i}
+                        new OrderItem() {Orderid = i, Productid = i, Qty = i}
                     ]
                 });
             }
@@ -54,22 +54,22 @@ public sealed class OrderRepositoryTests
         int amount = dbContext.Orders.Count();
 
         var result = orderRepository.CreateOrder(new Order() {
-            OrderID = 11,
+            Orderid = 11,
             Date = DateTime.Parse("27/10/2025"),
             Price = 123.45,
-            ProductOrders = [],
+            OrderItems = [],
             UserId = 1
         });
 
         Assert.IsTrue(result);
         Assert.IsTrue(amount+1 == dbContext.Orders.Count());
 
-        Order order = dbContext.Orders.First(o => o.OrderID == 11);
+        Order order = dbContext.Orders.First(o => o.Orderid == 11);
 
         Assert.AreEqual(123.45, order.Price);
         Assert.AreEqual(1, order.UserId);
         Assert.AreEqual(DateTime.Parse("27/10/2025"), order.Date);
-        Assert.IsFalse(order.ProductOrders.Count != 0);
+        Assert.IsFalse(order.OrderItems.Count != 0);
     }
 
     [TestMethod]
@@ -79,21 +79,21 @@ public sealed class OrderRepositoryTests
         IOrderRepository orderRepository = new OrderRepository(dbContext);
 
         var result = orderRepository.CreateOrder(new Order() {
-            OrderID = 11,
+            Orderid = 11,
             Date = DateTime.Parse("27/10/2025"),
             Price = 123123.45,
-            ProductOrders = [new ProductOrder() {OrderID = 11, ProductID = 4, Amount = 780}],
+            OrderItems = [new OrderItem() {Orderid = 11, Productid = 4, Qty = 780}],
             UserId = 1
         });
 
         Assert.IsTrue(result);
         Assert.IsTrue(dbContext.Orders.Any());
 
-        Order order = dbContext.Orders.First(o => o.OrderID == 11);
+        Order order = dbContext.Orders.First(o => o.Orderid == 11);
 
-        Assert.AreEqual(1, order.ProductOrders.Count);
-        Assert.AreEqual(4, order.ProductOrders.First().ProductID);
-        Assert.AreEqual(780, order.ProductOrders.First().Amount);
+        Assert.AreEqual(1, order.OrderItems.Count);
+        Assert.AreEqual(4, order.OrderItems.First().ProductID);
+        Assert.AreEqual(780, order.OrderItems.First().Amount);
     }
 
     [TestMethod]
@@ -117,12 +117,12 @@ public sealed class OrderRepositoryTests
         var order = orderRepository.GetOrder(3);
 
         Assert.IsNotNull(order);
-        Assert.AreEqual(3, order.OrderID);
+        Assert.AreEqual(3, order.Orderid);
         Assert.AreEqual(1, order.UserId);
         Assert.AreEqual(DateTime.Today.AddDays(-2), order.Date);
-        Assert.AreEqual(1, order.ProductOrders.Count);
-        Assert.AreEqual(3, order.ProductOrders.First().ProductID);
-        Assert.AreEqual(3, order.ProductOrders.First().Amount);
+        Assert.AreEqual(1, order.OrderItems.Count);
+        Assert.AreEqual(3, order.OrderItems.First().ProductID);
+        Assert.AreEqual(3, order.OrderItems.First().Amount);
     }
 
     [TestMethod]

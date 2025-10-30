@@ -7,6 +7,6 @@ namespace OrderService.Dto
     public double Price { get; set; }
     public DateTime Date { get; set; }
 
-    public ICollection<ProductOrderDto> Products { get; set; }
+    public ICollection<OrderItemDto> Products { get; set; }
     }
 }

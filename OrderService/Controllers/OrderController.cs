@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrderService.Dto;
 using OrderService.Interfaces;
@@ -8,13 +9,14 @@ namespace OrderService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrderController(IOrderRepository orderRepository, IProductOrderRepository productOrderRepository, IMapper mapper) : Controller
+    public class OrderController(IOrderRepository orderRepository, IOrderItemRepository productOrderRepository, IMapper mapper) : Controller
     {
         private readonly IOrderRepository _orderRepository = orderRepository;
-        private readonly IProductOrderRepository _productOrderRepository = productOrderRepository;
+        private readonly IOrderItemRepository _productOrderRepository = productOrderRepository;
         private readonly IMapper _mapper = mapper;
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Order>))]
         public IActionResult GetOrders()
         {
@@ -63,6 +65,7 @@ namespace OrderService.Controllers
         }
 
         [HttpPost("[action]")]
+        [Authorize(Roles = "admin")]
         [ProducesResponseType(204)]
         [ProducesResponseType(422)]
         [ProducesResponseType(500)]
@@ -72,7 +75,7 @@ namespace OrderService.Controllers
                 return BadRequest(ModelState);
 
             var order = _orderRepository.GetOrders()
-                .Where(o => o.OrderID == orderCreate.OrderID)
+                .Where(o => o.Orderid == orderCreate.OrderID)
                 .FirstOrDefault();
             if (order is not null)
             {
@@ -106,7 +109,7 @@ namespace OrderService.Controllers
 
             foreach (var productOrderCreate in orderCreate.Products)
             {
-                if (!_productOrderRepository.CreateProductOrder(_mapper.Map<ProductOrder>(productOrderCreate)))
+                if (!_productOrderRepository.CreateProductOrder(_mapper.Map<OrderItem>(productOrderCreate)))
                 {
                     ModelState.AddModelError("", "Something went wrong while saving");
                     return StatusCode(500, ModelState);

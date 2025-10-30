@@ -28,22 +28,22 @@ namespace OrderService.Repository
 
         public Order GetOrder(int orderID)
         {
-            return _context.Orders.Where(o => o.OrderID == orderID).Include(o => o.ProductOrders).FirstOrDefault()!;
+            return _context.Orders.Where(o => o.Orderid == orderID).Include(o => o.OrderItems).FirstOrDefault()!;
         }
 
         public ICollection<Order> GetOrders()
         {
-            return [.. _context.Orders.Include(o => o.ProductOrders)];
+            return [.. _context.Orders.Include(o => o.OrderItems)];
         }
 
         public ICollection<Order> GetOrders(int userId)
         {
-            return [.. _context.Orders.Where(o => o.UserId == userId).Include(o => o.ProductOrders)];
+            return [.. _context.Orders.Where(o => o.Userid == userId).Include(o => o.OrderItems)];
         }
 
         public ICollection<Order> GetOrdersBetween(DateTime startDate, DateTime endDate)
         {
-            return [.. _context.Orders.Where(o => startDate <= o.Date && o.Date <= endDate).Include(o => o.ProductOrders)];
+            return [.. _context.Orders.Where(o => startDate <= o.CreatedAt && o.CreatedAt <= endDate).Include(o => o.OrderItems)];
         }
 
         public bool OrderExists(int orderID)

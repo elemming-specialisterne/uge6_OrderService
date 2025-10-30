@@ -12,7 +12,7 @@ namespace OrderService.test.Controllers
     public sealed class OrderControllerTests
     {
         private readonly IOrderRepository _orderRepository = A.Fake<IOrderRepository>();
-        private readonly IProductOrderRepository _ProductOrderRepository = A.Fake<IProductOrderRepository>();
+        private readonly IOrderItemRepository _ProductOrderRepository = A.Fake<IOrderItemRepository>();
         private readonly IMapper _mapper = A.Fake<IMapper>();
 
         [TestMethod]
@@ -37,11 +37,11 @@ namespace OrderService.test.Controllers
         {
             var order = A.Fake<Order>();
             var orderCreate = A.Fake<OrderDto>();
-            var productOrder = A.Fake<ProductOrder>();
-            var productOrderCreate = A.Fake<ProductOrderDto>();
+            var productOrder = A.Fake<OrderItem>();
+            var productOrderCreate = A.Fake<OrderItemDto>();
             orderCreate.Products = [productOrderCreate];
             A.CallTo(() => _mapper.Map<Order>(orderCreate)).Returns(order);
-            A.CallTo(() => _mapper.Map<ProductOrder>(productOrderCreate)).Returns(productOrder);
+            A.CallTo(() => _mapper.Map<OrderItem>(productOrderCreate)).Returns(productOrder);
             A.CallTo(() => _orderRepository.CreateOrder(order)).Returns(true);
             A.CallTo(() => _ProductOrderRepository.CreateProductOrder(productOrder)).Returns(true);
             var controller = new OrderController(_orderRepository, _ProductOrderRepository, _mapper);
@@ -66,7 +66,7 @@ namespace OrderService.test.Controllers
         public async Task Test_CreateOrder_OrderAlreadyExists_Returns422()
         {
             var orderCreate = new OrderDto { OrderID = 0 };
-            var existingOrder = new Order { OrderID = 0 };
+            var existingOrder = new Order { Orderid = 0 };
             A.CallTo(() => _orderRepository.GetOrders()).Returns([existingOrder]);
             var controller = new OrderController(_orderRepository, _ProductOrderRepository, _mapper);
             var result = controller.CreateOrder(orderCreate);
@@ -137,7 +137,7 @@ namespace OrderService.test.Controllers
             // Arrange
             var controller = new OrderController(_orderRepository, _ProductOrderRepository, _mapper);
             var orderId = 7;
-            var order = new Order { OrderID = orderId, UserId = 11, Price = 55.5, Date = DateTime.Parse("2025-10-27") };
+            var order = new Order { Orderid = orderId, UserId = 11, Price = 55.5, Date = DateTime.Parse("2025-10-27") };
             var orderDto = new OrderDto { OrderID = orderId, UserId = 11, Price = 55.5, Date = DateTime.Parse("2025-10-27") };
             A.CallTo(() => _orderRepository.GetOrder(orderId)).Returns(order);
             A.CallTo(() => _mapper.Map<OrderDto>(order)).Returns(orderDto);
@@ -172,7 +172,7 @@ namespace OrderService.test.Controllers
             for (int i = 0; i < 3; i++)
             {
                 var d = startDate.AddDays(i);
-                orders.Add(new Order { OrderID = i + 1, UserId = 1, Price = 10 + i, Date = d });
+                orders.Add(new Order { Orderid = i + 1, UserId = 1, Price = 10 + i, Date = d });
                 orderDtos.Add(new OrderDto { OrderID = i + 1, UserId = 1, Price = 10 + i, Date = d });
             }
 
