@@ -29,9 +29,9 @@ public sealed class OrderRepositoryTests
                 databaseContext.Orders.Add(new Order()
                 {
                     Orderid = i,
-                    UserId = (i % 3)+1,
-                    Date = DateTime.Today.AddDays(i-5),
-                    Price = 147.15,
+                    Userid = (i % 3)+1,
+                    CreatedAt = DateTime.Today.AddDays(i-5),
+                    Total = 147.15m,
                     OrderItems =
                     [
                         new OrderItem() {Orderid = i, Productid = i, Qty = i}
@@ -55,10 +55,10 @@ public sealed class OrderRepositoryTests
 
         var result = orderRepository.CreateOrder(new Order() {
             Orderid = 11,
-            Date = DateTime.Parse("27/10/2025"),
-            Price = 123.45,
+            CreatedAt = DateTime.Parse("27/10/2025"),
+            Total = 123.45m,
             OrderItems = [],
-            UserId = 1
+            Userid = 1
         });
 
         Assert.IsTrue(result);
@@ -66,9 +66,9 @@ public sealed class OrderRepositoryTests
 
         Order order = dbContext.Orders.First(o => o.Orderid == 11);
 
-        Assert.AreEqual(123.45, order.Price);
-        Assert.AreEqual(1, order.UserId);
-        Assert.AreEqual(DateTime.Parse("27/10/2025"), order.Date);
+        Assert.AreEqual(123.45m, order.Total);
+        Assert.AreEqual(1, order.Userid);
+        Assert.AreEqual(DateTime.Parse("27/10/2025"), order.CreatedAt);
         Assert.IsFalse(order.OrderItems.Count != 0);
     }
 
@@ -80,10 +80,10 @@ public sealed class OrderRepositoryTests
 
         var result = orderRepository.CreateOrder(new Order() {
             Orderid = 11,
-            Date = DateTime.Parse("27/10/2025"),
-            Price = 123123.45,
+            CreatedAt = DateTime.Parse("27/10/2025"),
+            Total = 123123.45m,
             OrderItems = [new OrderItem() {Orderid = 11, Productid = 4, Qty = 780}],
-            UserId = 1
+            Userid = 1
         });
 
         Assert.IsTrue(result);
@@ -92,8 +92,8 @@ public sealed class OrderRepositoryTests
         Order order = dbContext.Orders.First(o => o.Orderid == 11);
 
         Assert.AreEqual(1, order.OrderItems.Count);
-        Assert.AreEqual(4, order.OrderItems.First().ProductID);
-        Assert.AreEqual(780, order.OrderItems.First().Amount);
+        Assert.AreEqual(4, order.OrderItems.First().Productid);
+        Assert.AreEqual(780, order.OrderItems.First().Qty);
     }
 
     [TestMethod]
@@ -118,11 +118,11 @@ public sealed class OrderRepositoryTests
 
         Assert.IsNotNull(order);
         Assert.AreEqual(3, order.Orderid);
-        Assert.AreEqual(1, order.UserId);
-        Assert.AreEqual(DateTime.Today.AddDays(-2), order.Date);
+        Assert.AreEqual(1, order.Userid);
+        Assert.AreEqual(DateTime.Today.AddDays(-2), order.CreatedAt);
         Assert.AreEqual(1, order.OrderItems.Count);
-        Assert.AreEqual(3, order.OrderItems.First().ProductID);
-        Assert.AreEqual(3, order.OrderItems.First().Amount);
+        Assert.AreEqual(3, order.OrderItems.First().Productid);
+        Assert.AreEqual(3, order.OrderItems.First().Qty);
     }
 
     [TestMethod]
@@ -137,7 +137,7 @@ public sealed class OrderRepositoryTests
         Assert.AreEqual(4, orders.Count);
         foreach (var order in orders)
         {
-            Assert.AreEqual(2, order.UserId);
+            Assert.AreEqual(2, order.Userid);
         }
     }
 

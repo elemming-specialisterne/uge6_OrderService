@@ -137,7 +137,7 @@ namespace OrderService.test.Controllers
             // Arrange
             var controller = new OrderController(_orderRepository, _ProductOrderRepository, _mapper);
             var orderId = 7;
-            var order = new Order { Orderid = orderId, UserId = 11, Price = 55.5, Date = DateTime.Parse("2025-10-27") };
+            var order = new Order { Orderid = orderId, Userid = 11, Total = 55.5m, CreatedAt = DateTime.Parse("2025-10-27") };
             var orderDto = new OrderDto { OrderID = orderId, UserId = 11, Price = 55.5, Date = DateTime.Parse("2025-10-27") };
             A.CallTo(() => _orderRepository.GetOrder(orderId)).Returns(order);
             A.CallTo(() => _mapper.Map<OrderDto>(order)).Returns(orderDto);
@@ -172,7 +172,7 @@ namespace OrderService.test.Controllers
             for (int i = 0; i < 3; i++)
             {
                 var d = startDate.AddDays(i);
-                orders.Add(new Order { Orderid = i + 1, UserId = 1, Price = 10 + i, Date = d });
+                orders.Add(new Order { Orderid = i + 1, Userid = 1, Total = 10m + i, CreatedAt = d });
                 orderDtos.Add(new OrderDto { OrderID = i + 1, UserId = 1, Price = 10 + i, Date = d });
             }
 
