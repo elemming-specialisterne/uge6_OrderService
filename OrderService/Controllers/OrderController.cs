@@ -9,10 +9,11 @@ namespace OrderService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrderController(IOrderRepository orderRepository, IOrderItemRepository productOrderRepository, IMapper mapper) : Controller
+    public class OrderController(IOrderRepository orderRepository, IOrderItemRepository productOrderRepository, IUserRepository userRepository, IMapper mapper) : Controller
     {
         private readonly IOrderRepository _orderRepository = orderRepository;
         private readonly IOrderItemRepository _productOrderRepository = productOrderRepository;
+        private readonly IUserRepository _userRepository = userRepository;
         private readonly IMapper _mapper = mapper;
 
         [HttpGet]
@@ -29,6 +30,7 @@ namespace OrderService.Controllers
         }
 
         [HttpGet("user/{userID}")]
+        [Authorize(Roles = "Admin, User")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Order>))]
         public IActionResult GetOrders(int userID)
         {
@@ -41,6 +43,7 @@ namespace OrderService.Controllers
         }
 
         [HttpGet("{orderID}")]
+        [Authorize(Roles = "Admin, User")]
         [ProducesResponseType(200, Type = typeof(OrderDto))]
         public IActionResult GetOrder(int orderID)
         {
@@ -53,6 +56,7 @@ namespace OrderService.Controllers
         }
 
         [HttpGet("between")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<OrderDto>))]
         public IActionResult GetOrdersBetween([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
         {
@@ -65,7 +69,7 @@ namespace OrderService.Controllers
         }
 
         [HttpPost("[action]")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin, User")]
         [ProducesResponseType(204)]
         [ProducesResponseType(422)]
         [ProducesResponseType(500)]
@@ -87,11 +91,11 @@ namespace OrderService.Controllers
                 ModelState.AddModelError("", "OrderId should be 0 to auto-update");
                 return StatusCode(422, ModelState);
             }
-            // if (!"Call to User"(orderCreate.UserId).exists) TODO If User not exist
-            // {
-            //     ModelState.AddModelError("", "User does not exist");
-            //     return StatusCode(422, ModelState);
-            // }
+            if (!_userRepository.GetUsers().Any(u => u.Userid == orderCreate.UserId))
+            {
+                ModelState.AddModelError("", "User does not exist");
+                return StatusCode(422, ModelState);
+            }
             // foreach (var productOrder in orderCreate.Products) TODO If product nor exist
             // {
             //     if (!"Call to Product API".Contains(product.ProductID))
