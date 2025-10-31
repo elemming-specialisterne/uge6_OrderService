@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,7 @@ namespace OrderService.Controllers
         private readonly IOrderItemRepository _productOrderRepository = productOrderRepository;
         private readonly IUserRepository _userRepository = userRepository;
         private readonly IMapper _mapper = mapper;
+        private static readonly HttpClient client = new();
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
@@ -32,9 +34,16 @@ namespace OrderService.Controllers
         [HttpGet("user/{userID}")]
         [Authorize(Roles = "Admin, User")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Order>))]
+        [ProducesResponseType(422)]
         public IActionResult GetOrders(int userID)
         {
             var orders = _mapper.Map<List<OrderDto>>(_orderRepository.GetOrders(userID));
+
+            if (!_userRepository.GetUsers().Any(u => u.Userid == userID))
+            {
+                ModelState.AddModelError("", "User does not exist");
+                return StatusCode(422, ModelState);
+            }
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -73,52 +82,64 @@ namespace OrderService.Controllers
         [ProducesResponseType(204)]
         [ProducesResponseType(422)]
         [ProducesResponseType(500)]
-        public IActionResult CreateOrder([FromBody] OrderDto orderCreate)
+        public async Task<IActionResult> CreateOrder([FromBody] OrderDto orderCreate)
         {
             if (orderCreate == null)
                 return BadRequest(ModelState);
 
             var order = _orderRepository.GetOrders()
-                .Where(o => o.Orderid == orderCreate.OrderID)
+                .Where(o => o.Orderid == orderCreate.Orderid)
                 .FirstOrDefault();
             if (order is not null)
             {
                 ModelState.AddModelError("", "Order Already Exists");
                 return StatusCode(422, ModelState);
             }
-            if (orderCreate.OrderID != 0)
+            if (orderCreate.Orderid != 0)
             {
                 ModelState.AddModelError("", "OrderId should be 0 to auto-update");
                 return StatusCode(422, ModelState);
             }
-            if (!_userRepository.GetUsers().Any(u => u.Userid == orderCreate.UserId))
+            if (!_userRepository.GetUsers().Any(u => u.Userid == orderCreate.Userid))
             {
                 ModelState.AddModelError("", "User does not exist");
                 return StatusCode(422, ModelState);
             }
-            // foreach (var productOrder in orderCreate.Products) TODO If product nor exist
-            // {
-            //     if (!"Call to Product API".Contains(product.ProductID))
-            //     {
-            //         ModelState.AddModelError("", $"ProductID {product.ProductID} does not exist");
-            //         return StatusCode(422, ModelState);
-            //     }
-            // }
-            
+            Console.WriteLine("Before api call");
+            ICollection<Product> products = await GetProductsAsync();
+            foreach (var productOrder in orderCreate.OrderItems)
+            {
+                if (!products.Any(p => p.Productid == productOrder.Productid))
+                {
+                    ModelState.AddModelError("", $"ProductID {productOrder.Productid} does not exist");
+                    return StatusCode(422, ModelState);
+                }
+                //OrderItems.Add(_mapper.Map<OrderItem>(productOrder));
+            }
+            Console.WriteLine("after api call");
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
 
+            ICollection<OrderItem> OrderItems = [];
             var orderMap = _mapper.Map<Order>(orderCreate);
-
-            foreach (var productOrderCreate in orderCreate.Products)
+            foreach (var productOrder in orderCreate.OrderItems)
             {
-                if (!_productOrderRepository.CreateProductOrder(_mapper.Map<OrderItem>(productOrderCreate)))
-                {
-                    ModelState.AddModelError("", "Something went wrong while saving");
-                    return StatusCode(500, ModelState);
-                }
+                var orderItem = _mapper.Map<OrderItem>(productOrder);
+                orderItem.Order = orderMap;
+                OrderItems.Add(orderItem);
             }
+            orderMap.OrderItems = OrderItems;
+
+            // foreach (var productOrderCreate in orderCreate.OrderItems)
+            // {
+            //     if (!_productOrderRepository.CreateProductOrder(_mapper.Map<OrderItem>(productOrderCreate)))
+            //     {
+            //         ModelState.AddModelError("", "Something went wrong while saving");
+            //         return StatusCode(500, ModelState);
+            //     }
+            // }
 
             if (!_orderRepository.CreateOrder(orderMap))
             {
@@ -127,6 +148,17 @@ namespace OrderService.Controllers
             }
 
             return NoContent();
+        }
+        
+        static async Task<ICollection<Product>> GetProductsAsync()
+        {
+            ICollection<Product> products = null;
+            HttpResponseMessage response = await client.GetAsync("https://localhost:7125/api/Products");
+            if (response.IsSuccessStatusCode)
+            {
+                products = await response.Content.ReadFromJsonAsync<ICollection<Product>>();
+            }
+            return products;
         }
     }
 }

@@ -8,9 +8,16 @@ namespace OrderService.Repository
     {
         private readonly OrderContext _context = context;
 
+        public bool Save()
+        {
+            var saved = _context.SaveChanges();
+            return saved > 0;
+        }
+
         public bool CreateProductOrder(OrderItem productOrder)
         {
-            throw new NotImplementedException();
+            _context.Add(productOrder);
+            return Save();
         }
 
         public bool DeleteProductOrder(OrderItem productOrder)
@@ -25,12 +32,12 @@ namespace OrderService.Repository
 
         public OrderItem GetProductOrder(int orderID, int ProductID)
         {
-            throw new NotImplementedException();
+            return _context.OrderItems.Where(o => o.Orderid == orderID && o.Productid == ProductID).FirstOrDefault()!;
         }
 
         public ICollection<OrderItem> GetProductOrders()
         {
-            throw new NotImplementedException();
+            return [.. _context.OrderItems];
         }
 
         public ICollection<OrderItem> GetProductOrders(int orderID)

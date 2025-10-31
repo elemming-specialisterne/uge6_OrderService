@@ -9,7 +9,9 @@ namespace OrderService.Helper
         public MappingProfiles()
         {
             CreateMap<Order,OrderDto>();
+            CreateMap<OrderDto, Order>();
             CreateMap<OrderItem,OrderItemDto>();
+            CreateMap<OrderItemDto, OrderItem>();
         }
     }
 }

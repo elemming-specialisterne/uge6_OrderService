@@ -2,11 +2,11 @@ namespace OrderService.Dto
 {
     public class OrderDto
     {
-    public int OrderID { get; set; }
-    public int UserId { get; set; }
-    public double Price { get; set; }
-    public DateTime Date { get; set; }
+    public int Orderid { get; set; }
+    public int Userid { get; set; }
+    public decimal Total { get; set; }
+    public DateTime CreatedAt { get; set; }
 
-    public ICollection<OrderItemDto> Products { get; set; }
+    public ICollection<OrderItemDto> OrderItems { get; set; }
     }
 }

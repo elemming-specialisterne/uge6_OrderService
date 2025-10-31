@@ -13,6 +13,7 @@ namespace OrderService.test.Controllers
     {
         private readonly IOrderRepository _orderRepository = A.Fake<IOrderRepository>();
         private readonly IOrderItemRepository _ProductOrderRepository = A.Fake<IOrderItemRepository>();
+        private readonly IUserRepository _UserRepository = A.Fake<IUserRepository>();
         private readonly IMapper _mapper = A.Fake<IMapper>();
 
         [TestMethod]
@@ -23,7 +24,7 @@ namespace OrderService.test.Controllers
             orderCreate.Products = [];
             A.CallTo(() => _mapper.Map<Order>(orderCreate)).Returns(order);
             A.CallTo(() => _orderRepository.CreateOrder(order)).Returns(true);
-            var controller = new OrderController(_orderRepository, _ProductOrderRepository, _mapper);
+            var controller = new OrderController(_orderRepository, _ProductOrderRepository,_UserRepository, _mapper);
 
             var result = controller.CreateOrder(orderCreate);
 
@@ -44,7 +45,7 @@ namespace OrderService.test.Controllers
             A.CallTo(() => _mapper.Map<OrderItem>(productOrderCreate)).Returns(productOrder);
             A.CallTo(() => _orderRepository.CreateOrder(order)).Returns(true);
             A.CallTo(() => _ProductOrderRepository.CreateProductOrder(productOrder)).Returns(true);
-            var controller = new OrderController(_orderRepository, _ProductOrderRepository, _mapper);
+            var controller = new OrderController(_orderRepository, _ProductOrderRepository,_UserRepository, _mapper);
 
             var result = controller.CreateOrder(orderCreate);
 
@@ -57,7 +58,7 @@ namespace OrderService.test.Controllers
         [TestMethod]
         public async Task Test_CreateOrder_NullInput_ReturnsBadRequest()
         {
-            var controller = new OrderController(_orderRepository, _ProductOrderRepository, _mapper);
+            var controller = new OrderController(_orderRepository, _ProductOrderRepository,_UserRepository, _mapper);
             var result = controller.CreateOrder(null!);
             Assert.IsInstanceOfType<BadRequestObjectResult>(result);
         }
@@ -68,7 +69,7 @@ namespace OrderService.test.Controllers
             var orderCreate = new OrderDto { OrderID = 0 };
             var existingOrder = new Order { Orderid = 0 };
             A.CallTo(() => _orderRepository.GetOrders()).Returns([existingOrder]);
-            var controller = new OrderController(_orderRepository, _ProductOrderRepository, _mapper);
+            var controller = new OrderController(_orderRepository, _ProductOrderRepository,_UserRepository, _mapper);
             var result = controller.CreateOrder(orderCreate);
             var statusResult = result as ObjectResult;
             Assert.IsNotNull(statusResult);
@@ -79,7 +80,7 @@ namespace OrderService.test.Controllers
         public async Task Test_ViewOrder_GetAllOrders_CallsRepositoryGetOrders()
         {
             // Arrange
-            var controller = new OrderController(_orderRepository, _ProductOrderRepository, _mapper);
+            var controller = new OrderController(_orderRepository, _ProductOrderRepository,_UserRepository, _mapper);
             var orders = A.CollectionOfFake<Order>(10);
             var orderDtos = A.CollectionOfFake<OrderDto>(10);
             A.CallTo(() => _orderRepository.GetOrders()).Returns(orders);
@@ -107,7 +108,7 @@ namespace OrderService.test.Controllers
         public async Task Test_ViewOrder_GetAllUserOrders_CallsRepositoryGetOrders()
         {
             // Arrange
-            var controller = new OrderController(_orderRepository, _ProductOrderRepository, _mapper);
+            var controller = new OrderController(_orderRepository, _ProductOrderRepository,_UserRepository, _mapper);
             var userId = 3;
             var orders = A.CollectionOfFake<Order>(5);
             var orderDtos = A.CollectionOfFake<OrderDto>(5);
@@ -135,7 +136,7 @@ namespace OrderService.test.Controllers
         public async Task Test_ViewOrder_GetOrderByID_CallsRepositoryGetOrder()
         {
             // Arrange
-            var controller = new OrderController(_orderRepository, _ProductOrderRepository, _mapper);
+            var controller = new OrderController(_orderRepository, _ProductOrderRepository,_UserRepository, _mapper);
             var orderId = 7;
             var order = new Order { Orderid = orderId, Userid = 11, Total = 55.5m, CreatedAt = DateTime.Parse("2025-10-27") };
             var orderDto = new OrderDto { OrderID = orderId, UserId = 11, Price = 55.5, Date = DateTime.Parse("2025-10-27") };
@@ -163,7 +164,7 @@ namespace OrderService.test.Controllers
         public async Task Test_ViewOrder_GetOrdersByDate_CallsRepositoryGetOrdersBetween()
         {
             // Arrange
-            var controller = new OrderController(_orderRepository, _ProductOrderRepository, _mapper);
+            var controller = new OrderController(_orderRepository, _ProductOrderRepository,_UserRepository, _mapper);
             var startDate = DateTime.Parse("2025-10-21");
             var endDate = DateTime.Parse("2025-10-25");
 
