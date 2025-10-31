@@ -55,7 +55,7 @@ public sealed class OrderRepositoryTests
 
         var result = orderRepository.CreateOrder(new Order() {
             Orderid = 11,
-            CreatedAt = DateTime.Parse("27/10/2025"),
+            CreatedAt = DateTime.Today,
             Total = 123.45m,
             OrderItems = [],
             Userid = 1
@@ -80,7 +80,7 @@ public sealed class OrderRepositoryTests
 
         var result = orderRepository.CreateOrder(new Order() {
             Orderid = 11,
-            CreatedAt = DateTime.Parse("27/10/2025"),
+            CreatedAt = DateTime.Today,
             Total = 123123.45m,
             OrderItems = [new OrderItem() {Orderid = 11, Productid = 4, Qty = 780}],
             Userid = 1
