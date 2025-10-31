@@ -68,7 +68,7 @@ public sealed class OrderRepositoryTests
 
         Assert.AreEqual(123.45m, order.Total);
         Assert.AreEqual(1, order.Userid);
-        Assert.AreEqual(DateTime.Parse("27/10/2025"), order.CreatedAt);
+        Assert.AreEqual(DateTime.Today, order.CreatedAt);
         Assert.IsFalse(order.OrderItems.Count != 0);
     }
 
