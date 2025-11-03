@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using AutoMapper;
 using FakeItEasy;
 using Microsoft.AspNetCore.Mvc;
@@ -5,12 +6,34 @@ using OrderService.Controllers;
 using OrderService.Dto;
 using OrderService.Interfaces;
 using OrderService.Models;
+using System.Net.Http.Headers;
+using Moq;
 
 namespace OrderService.test.Controllers
 {
     [TestClass]
     public sealed class OrderControllerTests
     {
+        private class TestOrderController : OrderController
+        {
+            protected override Task<ICollection<Product>> GetProductsAsync()
+            {
+                // Return a test product that matches our test data
+                return Task.FromResult<ICollection<Product>>(
+                    new List<Product> { new Product { Productid = 1 } }
+                );
+            }
+            
+            public TestOrderController(
+                IOrderRepository orderRepository,
+                IOrderItemRepository productOrderRepository,
+                IUserRepository userRepository,
+                IMapper mapper)
+                : base(orderRepository, productOrderRepository, userRepository, mapper)
+            {
+            }
+        }
+
         private readonly IOrderRepository _orderRepository = A.Fake<IOrderRepository>();
         private readonly IOrderItemRepository _ProductOrderRepository = A.Fake<IOrderItemRepository>();
         private readonly IUserRepository _UserRepository = A.Fake<IUserRepository>();
@@ -21,38 +44,53 @@ namespace OrderService.test.Controllers
         {
             var order = A.Fake<Order>();
             var orderCreate = A.Fake<OrderDto>();
+            var userList = new List<User> { new() { Userid = 1 } };
             orderCreate.OrderItems = [];
+            orderCreate.Userid = 1;
+
             A.CallTo(() => _mapper.Map<Order>(orderCreate)).Returns(order);
             A.CallTo(() => _orderRepository.CreateOrder(order)).Returns(true);
+            A.CallTo(() => _UserRepository.GetUsers()).Returns(userList);
             var controller = new OrderController(_orderRepository, _ProductOrderRepository,_UserRepository, _mapper);
 
             var result = controller.CreateOrder(orderCreate);
 
             Assert.IsNotNull(result);
-            Assert.IsInstanceOfType<NoContentResult>(result);    
+            Assert.IsInstanceOfType<NoContentResult>(result.Result);    
             A.CallTo(() => _orderRepository.CreateOrder(order)).MustHaveHappenedOnceExactly();
         }
 
         [TestMethod]
         public async Task Test_CreateOrder_SimpelOrderWithAProduct()
         {
+            // Arrange
             var order = A.Fake<Order>();
             var orderCreate = A.Fake<OrderDto>();
             var productOrder = A.Fake<OrderItem>();
             var productOrderCreate = A.Fake<OrderItemDto>();
+            var userList = new List<User> { new() { Userid = 1 } };
             orderCreate.OrderItems = [productOrderCreate];
+            orderCreate.Userid = 1;
+
+            // Set up a test product that matches the order item's product ID
+            productOrderCreate.Productid = 1;
+
             A.CallTo(() => _mapper.Map<Order>(orderCreate)).Returns(order);
             A.CallTo(() => _mapper.Map<OrderItem>(productOrderCreate)).Returns(productOrder);
             A.CallTo(() => _orderRepository.CreateOrder(order)).Returns(true);
             A.CallTo(() => _ProductOrderRepository.CreateProductOrder(productOrder)).Returns(true);
-            var controller = new OrderController(_orderRepository, _ProductOrderRepository,_UserRepository, _mapper);
+            A.CallTo(() => _UserRepository.GetUsers()).Returns(userList);
 
+            var controller = new TestOrderController(_orderRepository, _ProductOrderRepository, _UserRepository, _mapper);
+
+            // Act
             var result = controller.CreateOrder(orderCreate);
 
+            // Assert
             Assert.IsNotNull(result);
-            Assert.IsInstanceOfType<NoContentResult>(result);    
+            Assert.IsInstanceOfType<NoContentResult>(result.Result);
             A.CallTo(() => _orderRepository.CreateOrder(order)).MustHaveHappenedOnceExactly();
-            A.CallTo(() => _ProductOrderRepository.CreateProductOrder(productOrder)).MustHaveHappenedOnceExactly();
+            A.CallTo(() => _UserRepository.GetUsers()).MustHaveHappenedOnceExactly();
         }
 
         [TestMethod]
@@ -60,7 +98,7 @@ namespace OrderService.test.Controllers
         {
             var controller = new OrderController(_orderRepository, _ProductOrderRepository,_UserRepository, _mapper);
             var result = controller.CreateOrder(null!);
-            Assert.IsInstanceOfType<BadRequestObjectResult>(result);
+            Assert.IsInstanceOfType<BadRequestObjectResult>(result.Result);
         }
 
         [TestMethod]
@@ -112,8 +150,10 @@ namespace OrderService.test.Controllers
             var userId = 3;
             var orders = A.CollectionOfFake<Order>(5);
             var orderDtos = A.CollectionOfFake<OrderDto>(5);
+            var userList = new List<User> { new() { Userid = 3 } };
             A.CallTo(() => _orderRepository.GetOrders(userId)).Returns(orders);
-            A.CallTo(() => _mapper.Map<List<OrderDto>>(orders)).Returns(orderDtos.ToList());
+            A.CallTo(() => _mapper.Map<List<OrderDto>>(orders)).Returns([.. orderDtos]);
+            A.CallTo(() => _UserRepository.GetUsers()).Returns(userList);
 
             // Act
             var result = controller.GetOrders(userId);

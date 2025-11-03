@@ -10,13 +10,14 @@ namespace OrderService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrderController(IOrderRepository orderRepository, IOrderItemRepository productOrderRepository, IUserRepository userRepository, IMapper mapper) : Controller
+    public class OrderController(IOrderRepository orderRepository, IOrderItemRepository productOrderRepository, IUserRepository userRepository, IMapper mapper, IHttpClientFactory? httpClientFactory = null) : Controller
     {
         private readonly IOrderRepository _orderRepository = orderRepository;
         private readonly IOrderItemRepository _productOrderRepository = productOrderRepository;
         private readonly IUserRepository _userRepository = userRepository;
         private readonly IMapper _mapper = mapper;
-        private static readonly HttpClient client = new();
+        private readonly IHttpClientFactory? _httpClientFactory = httpClientFactory;
+        private static readonly HttpClient _defaultClient = new();
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
@@ -150,14 +151,29 @@ namespace OrderService.Controllers
             return NoContent();
         }
         
-        static async Task<ICollection<Product>> GetProductsAsync()
+        protected virtual async Task<ICollection<Product>> GetProductsAsync()
         {
-            ICollection<Product> products = null;
-            HttpResponseMessage response = await client.GetAsync("https://localhost:7125/api/Products");
-            if (response.IsSuccessStatusCode)
+            var client = _httpClientFactory?.CreateClient() ?? _defaultClient;
+            var products = new List<Product>();
+            
+            try 
             {
-                products = await response.Content.ReadFromJsonAsync<ICollection<Product>>();
+                HttpResponseMessage response = await client.GetAsync("https://localhost:7125/api/Products");
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<ICollection<Product>>();
+                    if (result != null)
+                    {
+                        products.AddRange(result);
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                // Log the error and return empty list
+                Console.WriteLine($"Error getting products: {ex.Message}");
+            }
+            
             return products;
         }
     }
