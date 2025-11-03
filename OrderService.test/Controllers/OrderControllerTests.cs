@@ -21,7 +21,7 @@ namespace OrderService.test.Controllers
         {
             var order = A.Fake<Order>();
             var orderCreate = A.Fake<OrderDto>();
-            orderCreate.Products = [];
+            orderCreate.OrderItems = [];
             A.CallTo(() => _mapper.Map<Order>(orderCreate)).Returns(order);
             A.CallTo(() => _orderRepository.CreateOrder(order)).Returns(true);
             var controller = new OrderController(_orderRepository, _ProductOrderRepository,_UserRepository, _mapper);
@@ -40,7 +40,7 @@ namespace OrderService.test.Controllers
             var orderCreate = A.Fake<OrderDto>();
             var productOrder = A.Fake<OrderItem>();
             var productOrderCreate = A.Fake<OrderItemDto>();
-            orderCreate.Products = [productOrderCreate];
+            orderCreate.OrderItems = [productOrderCreate];
             A.CallTo(() => _mapper.Map<Order>(orderCreate)).Returns(order);
             A.CallTo(() => _mapper.Map<OrderItem>(productOrderCreate)).Returns(productOrder);
             A.CallTo(() => _orderRepository.CreateOrder(order)).Returns(true);
@@ -66,11 +66,11 @@ namespace OrderService.test.Controllers
         [TestMethod]
         public async Task Test_CreateOrder_OrderAlreadyExists_Returns422()
         {
-            var orderCreate = new OrderDto { OrderID = 0 };
+            var orderCreate = new OrderDto { Orderid = 0 };
             var existingOrder = new Order { Orderid = 0 };
             A.CallTo(() => _orderRepository.GetOrders()).Returns([existingOrder]);
             var controller = new OrderController(_orderRepository, _ProductOrderRepository,_UserRepository, _mapper);
-            var result = controller.CreateOrder(orderCreate);
+            var result = await controller.CreateOrder(orderCreate);
             var statusResult = result as ObjectResult;
             Assert.IsNotNull(statusResult);
             Assert.AreEqual(422, statusResult.StatusCode);
@@ -139,7 +139,7 @@ namespace OrderService.test.Controllers
             var controller = new OrderController(_orderRepository, _ProductOrderRepository,_UserRepository, _mapper);
             var orderId = 7;
             var order = new Order { Orderid = orderId, Userid = 11, Total = 55.5m, CreatedAt = DateTime.Parse("2025-10-27") };
-            var orderDto = new OrderDto { OrderID = orderId, UserId = 11, Price = 55.5, Date = DateTime.Parse("2025-10-27") };
+            var orderDto = new OrderDto { Orderid = orderId, Userid = 11, Total = 55.5m, CreatedAt = DateTime.Parse("2025-10-27") };
             A.CallTo(() => _orderRepository.GetOrder(orderId)).Returns(order);
             A.CallTo(() => _mapper.Map<OrderDto>(order)).Returns(orderDto);
 
@@ -153,8 +153,8 @@ namespace OrderService.test.Controllers
             Assert.AreEqual(200, okResult.StatusCode);
             Assert.IsInstanceOfType<OrderDto>(okResult.Value);
             var returned = (OrderDto)okResult.Value;
-            Assert.AreEqual(orderId, returned.OrderID);
-            Assert.AreEqual(orderDto.UserId, returned.UserId);
+            Assert.AreEqual(orderId, returned.Orderid);
+            Assert.AreEqual(orderDto.Userid, returned.Userid);
 
             A.CallTo(() => _orderRepository.GetOrder(orderId)).MustHaveHappenedOnceExactly();
             A.CallTo(() => _mapper.Map<OrderDto>(order)).MustHaveHappenedOnceExactly();
@@ -174,7 +174,7 @@ namespace OrderService.test.Controllers
             {
                 var d = startDate.AddDays(i);
                 orders.Add(new Order { Orderid = i + 1, Userid = 1, Total = 10m + i, CreatedAt = d });
-                orderDtos.Add(new OrderDto { OrderID = i + 1, UserId = 1, Price = 10 + i, Date = d });
+                orderDtos.Add(new OrderDto { Orderid = i + 1, Userid = 1, Total = 10 + i, CreatedAt = d });
             }
 
             A.CallTo(() => _orderRepository.GetOrdersBetween(startDate, endDate)).Returns(orders);
@@ -194,7 +194,7 @@ namespace OrderService.test.Controllers
 
             foreach (var dto in returned)
             {
-                Assert.IsTrue(dto.Date >= startDate && dto.Date <= endDate, "Returned order date is outside requested range");
+                Assert.IsTrue(dto.CreatedAt >= startDate && dto.CreatedAt <= endDate, "Returned order date is outside requested range");
             }
 
             A.CallTo(() => _orderRepository.GetOrdersBetween(startDate, endDate)).MustHaveHappenedOnceExactly();
